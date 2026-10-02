@@ -1,0 +1,20 @@
+# Persistence (Checkpointers)
+
+## What is this?
+Persistence lets a LangGraph graph save its state while it runs, so it can remember earlier steps, continue a conversation later, or resume after a pause. Without it, every `invoke` starts from scratch.
+
+## How it works
+1. A **checkpointer** is passed when compiling the graph: `graph.compile(checkpointer=MemorySaver())`.
+2. After every step, the graph saves a **checkpoint**, which is a snapshot of the current state.
+3. Each run is tied to a **`thread_id`** passed in the config: `{"configurable": {"thread_id": "1"}}`.
+4. Calling the graph again with the same `thread_id` loads the saved state and continues from it.
+5. A different `thread_id` starts a fresh, separate conversation.
+
+## Key concepts
+- **Checkpointer**: the component that saves and loads checkpoints (`MemorySaver`, `SqliteSaver`, `PostgresSaver`).
+- **Checkpoint**: a snapshot of the graph state at one step.
+- **Thread**: a sequence of checkpoints identified by `thread_id`. Think of it as one conversation.
+- **State inspection**: `graph.get_state(config)` returns the latest state, and `graph.get_state_history(config)` returns all past checkpoints.
+
+## Why it matters
+- **Memory**: the agent remembers earlier messages within a
